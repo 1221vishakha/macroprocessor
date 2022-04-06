@@ -1,0 +1,212 @@
+#include<stdio.h>
+#include<conio.h>
+#include<stdlib.h>
+#include<string.h>
+
+int main()
+{
+	FILE *ex,*mdt2,*mnt2,*op2;
+	char s[25],temp[25],m[20],ala[5],ch,ch1,ch2,check[20]="",check2[20]="",s1[20]="";
+	int mdtp,i=0,j=0,l,n,x,flag=0,mn=0;
+
+	ex=fopen("1913171_exf.txt","w+");
+	if(ex==NULL)
+	{
+		printf("\ncannot open 1913171_exf.txt file\n");
+		exit(0);
+	}
+	
+	mdt2=fopen("1913171_mdtf.txt","r");
+	if(mdt2==NULL )
+	{
+		printf("\ncannot open 1913171_mdtf.txt file\n");
+		exit(0);
+	}
+	
+	mnt2=fopen("1913171_mntf.txt","r");
+	if( mnt2==NULL )
+	{
+		printf("\ncannot open 1913171_mntf.txt file\n");
+		exit(0);
+	}
+	op2=fopen("1913171_opf.txt","r");
+	
+	if(op2==NULL)
+	{
+		printf("\ncannot open 1913171_opf.txt file\n");
+		exit(0);
+	}
+	
+	fgets(s,20,op2);
+	while(strcmp(s,"END")!=0)
+	{
+		fgets(temp,25,mnt2);		//CHECK IN MNT TABLE
+		while(feof(mnt2)==0)
+		{
+			l=0;
+			i=0;
+			flag=0;
+			ch=temp[0];
+			while(ch!='.')
+			{
+				i++;
+				ch=temp[i];			
+			}
+			i++;
+			ch=temp[i];
+			while(ch!=' ')
+			{
+				strncat(check,&ch,1);
+				i++;	
+				ch=temp[i];	
+				l++;
+			}
+			
+			while(ch!='-')
+			{
+				i++;
+				ch=temp[i];	
+			}
+			strcat(check,".");
+			mdtp=temp[i+1]-'0';
+			
+			i=0;
+			ch1=check[0],ch2=s[0];
+			while(ch1!='\0')
+			{
+				if(ch1==ch2)
+				{
+					flag++;
+					i++;
+					ch1=check[i];
+					ch2=s[i];
+				}
+				else
+					break;
+			}
+			if(flag==l)			//X=1 IF FOUND IN MNT TABLE ELSE X=0
+			{
+				x=1;
+				break;
+			}
+			else
+				x=0;
+			
+			
+			fgets(temp,25,mnt2);
+			strcpy(check,"");
+		}
+		fseek(mnt2,0,SEEK_SET);
+		
+		if(x==1)				//IF FOUND IN MNT
+		{
+			
+			l=strlen(s);		//PREPARING ALA  
+			for(i=0;i<l;i++)
+			{
+				ch=s[i];
+				if(ch==' '|| ch==',')
+				{
+					ala[j]=s[i+1];
+					j++;
+				}
+			}
+			mdtp=mdtp+1;
+			fseek(mdt2,0,SEEK_SET);
+			fgets(m,20,mdt2);
+			while(feof(mdt2)==0)
+			{
+				if((m[0]-'0')==mdtp)			//MDT CHECK
+				{
+					while(strcmp("MEND\n",check2)!=0)
+					{
+						
+						l=strlen(m);
+						
+						for(i=0;i<l;i++)		//SUBSTITUTING ALA 
+						{
+							ch=m[i];
+							if(ch=='#')
+							{
+								for(n=0;n<j;n++)
+								{
+									if(n==(m[i+1]-'0'))
+										m[i+1]=ala[n];
+								}
+							}
+						}
+						
+						i=0;				//PRINT IN EXPANDED OUTPUT CODE
+						ch=m[0];
+						while(ch!='.')
+						{
+							i++;
+							ch=m[i];	
+						}
+						
+						while(ch!='\0')
+						{
+							i++;
+							ch=m[i];
+							if(ch=='#')
+								continue;
+							strncat(s1,&ch,1);	
+								
+						}
+						fputs(s1,ex);
+						fgets(m,20,mdt2);
+						
+						strcpy(s1,"");
+						strcpy(check2,"");
+						
+						/*TO REMOVE MDTC FROM THE LINES SO THAT WE CAN GET THE CODE
+						 FOR EXAMPLE 5.MACRO WILL BE CHANGED INTO MACRO*/
+						 
+						mn=0;				
+						ch=m[0];
+						while(ch!='.')
+						{
+							mn++;
+							ch=m[mn];
+						}
+						while(ch!='\0')
+						{
+							mn++;
+							ch=m[mn];
+							strncat(check2,&ch,1);
+						}
+					}
+					break;
+				}
+				else
+					fgets(m,20,mdt2);
+			}
+				
+		}
+		else
+			fputs(s,ex);			//IF NOT FOUNF IN MNT 
+			
+			j=0;
+			strcpy(check2,"");
+			
+			fgets(s,20,op2);	
+	}
+	fputs(s,ex);				//FOR PRINTING END
+	
+	printf("\nsecond pass successful\n");
+	
+	printf("\ncheck 1913171_pass1.txt for code of pass 1");
+	printf("\ncheck 1913171_ex.txt for expanded code");
+	printf("\ncheck 1913171_mdtf.txt for MDT table");
+	printf("\ncheck 1913171_mntf.txt for MNT table");
+	printf("\ncheck 1913171_opf.txt for output of pass 1 which is input for pass 2");
+	
+	
+	fclose(ex);
+	fclose(mnt2);
+	fclose(mdt2);
+	fclose(op2);
+	
+	return 0;
+}
+
