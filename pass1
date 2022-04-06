@@ -1,0 +1,128 @@
+#include<stdio.h>
+#include<conio.h>
+#include<stdlib.h>
+#include<string.h>
+
+int main()
+{
+	FILE *f1,*mdt,*mnt,*op;
+	int mdtc=1,mntc=1,i=0,j=0,m,n,l;
+	char c[10],ala[5],ch;
+	
+	f1=fopen("1913171_f.txt","r");
+	if(f1==NULL )
+	{
+		printf("\ncannot open 1913171_f.txt file\n");
+		exit(0);
+	}
+	
+	mdt=fopen("1913171_mdtf.txt","w+");
+	if(mdt==NULL )
+	{
+		printf("\ncannot open 1913171_mdtf.txt file\n");
+		exit(0);
+	}
+	
+	mnt=fopen("1913171_mntf.txt","w+");
+	if( mnt==NULL )
+	{
+		printf("\ncannot open 1913171_mntf.txt file\n");
+		exit(0);
+	}
+	op=fopen("1913171_opf.txt","w+");
+	
+	if(op==NULL)
+	{
+		printf("\ncannot open 1913171_opf file\n");
+		exit(0);
+	}
+	
+	//BEGINS
+	fgets(c,10,f1);
+	while(strcmp(c,"END")!=0)
+	{
+		j=0;
+		if(strcmp(c,"MACRO\n")==0)
+		{
+			
+			fgets(c,10,f1);
+			
+			fputc(mntc+'0',mnt);		//PRINT MNTC IN MNT TABLE FILE
+			fputs(".",mnt);
+			fputs(c,mnt);
+			fputs("-",mnt);
+			
+			fputc(mdtc+'0',mnt);
+			
+			fputs("\n",mnt);
+			
+			mntc=mntc+1;
+			
+			
+			l=strlen(c);		//PREPARING ALA
+			for(i=0;i<l;i++)
+			{
+				ch=c[i];
+				if(ch=='&')
+				{
+					ala[j]=c[i+1];
+					j++;
+				}
+			}
+			
+			fputc(mdtc+'0',mdt);			//PRINT MDTC IN MDT TABLE FILE
+			fputs(".",mdt);
+			fputs(c,mdt);
+			mdtc=mdtc+1;
+			
+			fgets(c,10,f1);
+			while(strcmp(c,"MEND\n")!=0)
+			{
+				l=strlen(c);
+				for(i=0;i<l;i++)			//SUBSTITUTING ALA
+				{
+					ch=c[i];
+					if(ch=='&')
+					{
+						c[i]='#';	
+						for(n=0;n<j;n++)
+							{
+								if(ala[n]==c[i+1])
+									c[i+1]=n+'0';
+							}
+					}
+				}
+				fputs(c,mdt);
+				fputc(mdtc+'0',mdt);
+				fputs(".",mdt);
+				mdtc=mdtc+1;
+				fgets(c,10,f1);
+			}
+			
+			fputs(c,mdt);
+			
+		}
+		else
+		{
+			fputs(c,op);
+		}
+		
+		fgets(c,10,f1);
+	}
+	
+	fputs(c,op);
+	
+	printf("\npass 1 successful\n");
+	
+	printf("\ncheck 1913171_f.txt for input file");
+	printf("\ncheck 1913171_mdtf.txt for MDT table");
+	printf("\ncheck 1913171_mntf.txt for MNT table");
+	printf("\ncheck 1913171_opf.txt for output of pass 1");
+	
+	fclose(f1);
+	fclose(mnt);
+	fclose(mdt);
+	fclose(op);
+		
+	return 0;	
+}
